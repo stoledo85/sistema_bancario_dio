@@ -22,7 +22,7 @@ while True:
         if vlr > 0:
             saldo += vlr
             print(f"O valor de R${vlr:.2f} depositado com sucesso.")
-            extrato += f"Depósito: R$ {vlr:.2f}\n"
+            extrato += f"Depósito: R$ {vlr:.2f}"
         else:
             print("Deposito Invalido!")
     elif opcao == "s":
@@ -32,11 +32,11 @@ while True:
         elif vlr > limite:
             print("Voce não possui este limite de saque.")
         elif numero_saques > 3:
-            print("Voce alcançou o numero maximo de saques.")
+            print("Você alcançou o numero maximo de saques.")
         elif vlr >= 0:
             saldo -= vlr
-            print(f"Saque: R$ {vlr:.2f}\n")
-            extrato += f"Saque: R$ {vlr:.2f}\n"
+            print(f"Saque: R$ {vlr:.2f}")
+            extrato += f"Saque: R$ {vlr:.2f}"
             numero_saques += 1
     elif opcao == "e":
        print("\n================ EXTRATO ================")

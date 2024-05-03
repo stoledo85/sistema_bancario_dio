@@ -1,3 +1,7 @@
+from abc import ABC, abstractclassmethod, abstractproperty
+from datetime import datetimes
+
+
 class Cliente:
     def __init__(self, endereco):
         self.endereco = endereco
@@ -19,14 +23,12 @@ class PessoaFisica(Cliente):
 
 
 class Conta:
-    def __init__(self, numero, cliente, limite, numero_saques):
+    def __init__(self, numero, cliente):
         self.numero = numero
         self.saldo = 0
         self.agencia = "0001"
         self.cliente = cliente
-        self.limite = (limite,)
-        self.numero_saques = (numero_saques,)
-        self.extrato = Extrato()
+        self.historico = Historico()
 
     @classmethod
     def criar_conta(cls, numero, cliente):
@@ -45,10 +47,10 @@ class Conta:
         return self.cliente
 
     @property
-    def extrato(self):
-        return self.extrato
+    def historico(self):
+        return self.historico
 
-    def saque(self, valor):
+    def sacar(self, valor):
         saldo = self.saldo
 
         if valor > saldo:
@@ -62,7 +64,7 @@ class Conta:
 
         return False
 
-    def deposito(self, valor):
+    def depositar(self, valor):
         if valor > 0:
             saldo += valor
             print(f"O valor de R${valor:.2f} depositado com sucesso.")
@@ -70,20 +72,95 @@ class Conta:
         else:
             print("Deposito Invalido!")
             return False
-        
+
         return True
 
 
-def extrato(saldo, /, *, extrato):
-    """
-    A função extrato deve receber ambos tipos de argumenos: Posição e Nominal
-    Args:
-        Posicionais: Saldo
-        Nominais: Extrato
-    Return: String
-    """
+class ContaCorrente(Conta):
+    def __init__(self, numero, cliente, limite=500, limite_saques=3):
+        super().__init__(numero, cliente)
+        self.limite = limite
+        self.limite_saques = limite_saques
 
-    print("\n================ EXTRATO ================")
-    print("Não foram realizadas movimentações." if not extrato else extrato)
-    print(f"\nSaldo: R$ {saldo:.2f}")
-    print("==========================================")
+    def sacar(self, valor):
+        numero_saques = len(
+            [
+                transacao
+                for transacao in self.historico.transacoes
+                if transacao["tipo"] == Saque.__name__
+            ]
+        )
+        if valor > self.limite:
+            print("o Valor do saque é maior que seu limite...")
+        elif numero_saques >= self.limite_saques:
+            print("Conta ja alcançou limites de saques.")
+        else:
+            return super().sacar(valor)
+
+        return False
+
+    def __str__(self):
+        return f"""\
+            Agência:\t{self.agencia}
+            C/C:\t\t{self.numero}
+            Titular:\t{self.cliente.nome}
+        """
+
+
+class Historico:
+    def __init__(self):
+        self._transacoes = []
+
+    @property
+    def transacoes(self):
+        return self._transacoes
+
+    def adicionar_transacao(self, transacao):
+        self._transacoes.append(
+            {
+                "tipo": transacao.__class__.__name__,
+                "valor": transacao.valor,
+                "data": datetime.now().strftime("%d-%m-%Y %H:%M:%s"),
+            }
+        )
+
+
+class Transacao(ABC):
+    @property
+    @abstractproperty
+    def valor(self):
+        pass
+    @classmethod    
+    @abstractclassmethod
+    def registrar(self, conta):
+        pass
+
+
+class Saque(Transacao):
+    def __init__(self, valor):
+        self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
+
+    def registrar(self, conta):
+        sucesso_transacao = conta.sacar(self.valor)
+
+        if sucesso_transacao:
+            conta.historico.adicionar_transacao(self)
+
+
+class Deposito(Transacao):
+    def __init__(self, valor):
+        self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
+
+    def registrar(self, conta):
+        sucesso_transacao = conta.depositar(self.valor)
+
+        if sucesso_transacao:
+            conta.historico.adicionar_transacao(self)

@@ -1,0 +1,2 @@
+[2024-06-13 11:57:56] Função 'criar_cliente' executada com argumentos ([<PessoaFisica: ('123')>],) e {}. Retornou None
+[2024-06-13 11:58:02] Função 'criar_conta' executada com argumentos (1, [<PessoaFisica: ('123')>], [<ContaCorrente: ('0001', '1', 'Sander')>]) e {}. Retornou None
